@@ -1,0 +1,97 @@
+###
+### Test for registering a new user
+###
+
+POST {{protocol}}{{host}}:{{port}}/users
+Content-Type: application/json
+
+{
+  "email": "test@gmail.com",
+  "password": "test_password",
+  "repeatedPassword": "test_password"
+}
+
+> {%
+    client.test("New user created successfully", function() {
+        client.assert(response.status === 201, "Response status is not 201");
+        client.assert(response.body.token !== null, "Token is not present");
+        client.global.set("auth_token", response.body.token);
+    });
+%}
+
+###
+### Test for registering a new user with already existing email
+###
+
+POST {{protocol}}{{host}}:{{port}}/users
+Content-Type: application/json
+
+{
+  "email": "test@gmail.com",
+  "password": "test123",
+  "repeatedPassword": "test123"
+}
+
+> {%
+    client.test("New user was not created", function() {
+        client.assert(response.status === 409, "Response status is not 409");
+    });
+%}
+
+###
+### Test for logging in with the credentials
+###
+
+POST {{protocol}}{{host}}:{{port}}/tokens
+Content-Type: application/json
+
+{
+  "email": "admin@gmail.com",
+  "password": "admin123"
+}
+
+> {%
+    client.test("User logged in successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.token !== null, "Token is not present");
+        client.global.set("auth_token", response.body.token);
+    });
+%}
+
+###
+### Test for logging in with invalid credentials
+###
+
+POST {{protocol}}{{host}}:{{port}}/tokens
+Content-Type: application/json
+
+{
+  "email": "denys@gmail.com",
+  "password": "password"
+}
+
+> {%
+    client.test("User is not logged in", function() {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+###
+### Test for logging in with invalid email type
+###
+
+POST {{protocol}}{{host}}:{{port}}/tokens
+Content-Type: application/json
+
+{
+  "email": "denys@gmail",
+  "password": "denys19"
+}
+
+> {%
+    client.test("User is logged in", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+        client.assert(response.body.newUser === undefined, "User exists");
+    });
+%}
+

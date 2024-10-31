@@ -1,0 +1,326 @@
+###
+### Test for getting all computers
+###
+
+GET {{protocol}}{{host}}:{{port}}/computers
+
+> {%
+    client.test("Get all computers successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(Array.isArray(response.body), "Response body is not an array");
+    });
+%}
+
+###
+### Test for getting all computers when searhing is set to "apple"
+###
+
+GET {{protocol}}{{host}}:{{port}}/computers?search=apple
+
+> {%
+    client.test("Get all computers with search query successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(Array.isArray(response.body), "Response body is not an array");
+        client.assert(response.body.length > 0, "No computers found with search query");
+    });
+%}
+
+###
+### Test for getting all computers with type "laptop"
+###
+
+GET {{protocol}}{{host}}:{{port}}/computers?type=laptop
+
+> {%
+    client.test("Get all computers with filter successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(Array.isArray(response.body), "Response body is not an array");
+        client.assert(response.body.length > 0, "No computers found with the specified filters");
+    });
+%}
+
+###
+### Test for getting all computers with invalid processor filter
+###
+
+GET {{protocol}}{{host}}:{{port}}/computers?processor=lalala
+
+> {%
+    client.test("Get an empty array of computers", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.length === 0, "No computers found with the specified filters");
+    });
+%}
+
+###
+### Test for getting a computer by its ID
+###
+
+GET {{protocol}}{{host}}:{{port}}/computers/3
+
+> {%
+    client.test("Get computer by ID successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.id === 3, "Incorrect computer ID returned");
+    });
+%}
+
+###
+### Test for getting a computer by a non-existent ID
+###
+
+GET {{protocol}}{{host}}:{{port}}/computers/9
+
+> {%
+    client.test("Get computers by non-existent ID", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+###
+### Test for creating a new computer
+###
+
+POST {{protocol}}{{host}}:{{port}}/computers
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "test",
+  "type": "laptop",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "2024-09-15"
+}
+
+> {%
+    client.test("Create a new computer", function() {
+       client.assert(response.status === 201, "Response status is not 201");
+    });
+%}
+
+###
+### Test for creating with invalid type
+###
+
+POST {{protocol}}{{host}}:{{port}}/computers
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "test",
+  "type": "invalid",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "2024-09-15"
+}
+
+> {%
+    client.test("Create a new computer with invalid type", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+###
+### Test for creating with invalid endTime
+###
+
+POST {{protocol}}{{host}}:{{port}}/computers
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "test",
+  "type": "laptop",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "3010-14-30"
+}
+
+> {%
+    client.test("Create a new computer with invalid endTime", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+###
+### Test for creating with invalid inputs
+###
+
+POST {{protocol}}{{host}}:{{port}}/computers
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": 10,
+  "type": "laptop",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": 10,
+  "description": -999,
+  "endTime": "3010-14-30"
+}
+
+> {%
+    client.test("Create a new computer with invalid inputs", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+###
+### Test for updating a computer
+###
+
+PUT {{protocol}}{{host}}:{{port}}/computers/6
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Title changed!!",
+  "type": "laptop",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "2024-09-15"
+}
+
+> {%
+    client.test("Update a new computer", function() {
+        client.assert(response.status === 201, "Response status is not 201");
+    });
+%}
+
+###
+### Test for updating a computer with a non-existing ID
+###
+
+PUT {{protocol}}{{host}}:{{port}}/computers/18
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Title changed!!",
+  "type": "laptop",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "2024-09-15"
+}
+
+> {%
+    client.test("Update a new computer", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+###
+### Test for updating a computer with a no type provided
+###
+
+PUT {{protocol}}{{host}}:{{port}}/computers/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Title changed!!",
+  "type": "",
+  "price": 1999,
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "2024-09-15"
+}
+
+> {%
+    client.test("Update a new computer", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+
+###
+### Test for updating a computer with the invalid inputs
+###
+
+PUT {{protocol}}{{host}}:{{port}}/computers/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": 50,
+  "type": "laptop",
+  "price": "1999",
+  "processor": "Processor test",
+  "graphicsCard": "Test card",
+  "description": "description test",
+  "endTime": "2024-09-15"
+}
+
+> {%
+    client.test("Update a new computer with invalid inputs", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+
+###
+### Test for deleting a computer
+###
+
+DELETE {{protocol}}{{host}}:{{port}}/computers/6
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete a computer", function() {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}
+
+
+###
+### Test for deleting a computer with a non-existing ID
+###
+
+DELETE {{protocol}}{{host}}:{{port}}/computers/10
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete a computer with a non-existing ID", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+###
+### Test for getting user's wins
+###
+
+GET {{protocol}}{{host}}:{{port}}/wins/users/1
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get a list of wins by user id", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+
+###
+### Test for getting user's wins with invalid user ID
+###
+
+GET {{protocol}}{{host}}:{{port}}/wins/users/9
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get a list of wins by invalid user id", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}

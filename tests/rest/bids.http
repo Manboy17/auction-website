@@ -1,0 +1,111 @@
+###
+### Test for creating a new bid
+###
+
+POST {{protocol}}{{host}}:{{port}}/bids/computers/1
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "creator": "alice@gmail.com",
+  "price": 1300
+}
+
+> {%
+    client.test("Create a new bid", function() {
+        client.assert(response.status === 201, "Response status is not 201");
+    });
+%}
+
+###
+### Test for creating a new bid without access_token
+###
+
+POST {{protocol}}{{host}}:{{port}}/bids/computers/1
+Content-Type: application/json
+
+{
+  "creator": "alice@gmail.com",
+  "price": 1300
+}
+
+> {%
+    client.test("Create a new bid", function() {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+
+###
+### Test for creating a new bid for a non-existent computer ID
+###
+
+POST {{protocol}}{{host}}:{{port}}/bids/computers/9
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "creator": "alice@gmail.com",
+  "price": 1200
+}
+
+> {%
+    client.test("Create a new bid by invalid ID", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+
+
+###
+### Test for getting all bids for a certain computer by its id
+###
+
+GET {{protocol}}{{host}}:{{port}}/bids/computers/1
+
+> {%
+    client.test("Get all bids successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(Array.isArray(response.body), "Response body is not an array");
+        client.assert(response.body.length > 0, "No computers found with search query");
+    });
+%}
+
+###
+### Test for deleting a bids
+###
+
+DELETE {{protocol}}{{host}}:{{port}}/bids/1/computers/1
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete a bid", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+
+###
+### Test for getting bids by a non-existent computer ID
+###
+
+GET {{protocol}}{{host}}:{{port}}/bids/computers/9
+
+> {%
+    client.test("Get bids by non-existent ID", function() {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+
+###
+### Test for updating a list of bids in a real-time (manual verification needed)
+###
+
+GET {{protocol}}{{host}}:{{port}}/bids/computers/1/monitor
+
+> {%
+    client.test("Update the bids in a real-time", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
